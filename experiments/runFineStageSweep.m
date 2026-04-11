@@ -1,4 +1,15 @@
 clearvars;
+addpath(genpath(fullfile(fileparts(mfilename('fullpath')), '..', 'src')));
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', 'config'));
+
+%% --- Output directory setup (repo-relative) -------------------
+repoRoot = fullfile(fileparts(mfilename('fullpath')), '..');
+figDir   = fullfile(repoRoot, 'results', 'figures');
+csvDir   = fullfile(repoRoot, 'results', 'csv');
+if ~exist(figDir,'dir'), mkdir(figDir); end
+if ~exist(csvDir,'dir'), mkdir(csvDir); end
+%% ---------------------------------------------------------------
+
 %% ------- Invariants (compute once) -------
 M   = 32;
 N   = 100;
@@ -15,7 +26,7 @@ opts_sel = struct('eig_tol_scale',1e-6, 'tikhonov_gamma', 0, ...
                   'prune_topq', 0);                      % 0 = off; try 3 for ~3–5× fewer windows
 
 %% RF mask (element-space subsampling for "coarse")
-maskIdx  = centered_contiguous_mask(M, NRF);
+maskIdx  = covguided.centeredContiguousMask(M, NRF);
 mIdxFlip = NRF:-1:1;                                     % for FBA reflect
 
 %% Precompute once (outside parfor)
@@ -36,8 +47,8 @@ Atrue  = Afun(mu_true);
 R_signal = Atrue * R_source * Atrue';
 
 %% "Oracle" beam set (invariant)
-beamGroups_ini  = sectorize_dft_beams(mu_true, M, 4, 1);
-SoICols_ini     = select_adjacent_pairs_from_sectorized_cov(R_signal, beamGroups_ini);
+beamGroups_ini  = covguided.sectorizeDftBeams(mu_true, M, 4, 1);
+SoICols_ini     = covguided.selectAdjacentPairsFromSectorizedCov(R_signal, beamGroups_ini);
 SoICols_true    = unique(cell2mat(SoICols_ini)).';
 
 %% SNR & noise
@@ -113,12 +124,12 @@ for snrIndex = 1:length(ASNR)
         RY_fba    = (RY_coarse + conj(RY_coarse(mIdxFlip, mIdxFlip))) * 0.5;  % already Hermitian
 
         %% TLS-ESPRIT on coarse/wideES covariances
-        mu_coarse = tls_esprit(RY_fba,   d);
-        mu_wide   = tls_esprit(RY_wideES, d);
+        mu_coarse = covguided.tlsEsprit(RY_fba,   d);
+        mu_wide   = covguided.tlsEsprit(RY_wideES, d);
 
         %% Coarse power estimates (as in your code)
-        [~, ~, mu_courseSort, R_course] = estimate_powers_course(RY_fba,    maskIdx,  mu_coarse, M);
-        [~, ~, mu_wideSort,   R_wide]   = estimate_powers_course(RY_wideES, 1:NRF,     mu_wide,   M);
+        [~, ~, mu_courseSort, R_course] = covguided.estimatePowersCoarse(RY_fba,    maskIdx,  mu_coarse, M);
+        [~, ~, mu_wideSort,   R_wide]   = covguided.estimatePowersCoarse(RY_wideES, 1:NRF,     mu_wide,   M);
 
         %% --- Fine stage synthetic data (element space) ---
         Z2     = nvStd * (randn(M,N) + 1i*randn(M,N));
@@ -140,12 +151,12 @@ for snrIndex = 1:length(ASNR)
              %%
              kf = kf_list(kk);
              %% Contiguous k_f-beam sectors around each coarse DoA
-             beamGroups_fine = sectorize_dft_beams(mu_courseSort, M, 2*kf, 1);
-             selBeams_fine   = select_beamsets_from_sectorized_cov(R_course, beamGroups_fine, kf, opts_sel);
+             beamGroups_fine = covguided.sectorizeDftBeams(mu_courseSort, M, 2*kf, 1);
+             selBeams_fine   = covguided.selectBeamsetsFromSectorizedCov(R_course, beamGroups_fine, kf, opts_sel);
              SoICols_fine    = unique(cell2mat(selBeams_fine)).';
 
              %% Contiguous k_f-beam sectors around each coarse DoA
-             beamGroups_wide = sectorize_dft_beams(mu_wideSort, M, kf, 1);
+             beamGroups_wide = covguided.sectorizeDftBeams(mu_wideSort, M, kf, 1);
              SoICols_wide    = unique(cell2mat(beamGroups_wide)).';
 
              %% Beamspace restriction for this k_f
@@ -153,8 +164,8 @@ for snrIndex = 1:length(ASNR)
              Yb_wide = Yb_full(SoICols_wide, :);
       
              %% Unitary ESPRIT on fine and wide
-             mu_fine = unitary_esprit_sparse(Yb_fine, SoICols_fine, d, M);
-             mu_wide = unitary_esprit_sparse(Yb_wide, SoICols_wide, d, M);
+             mu_fine = covguided.unitaryEspritSparse(Yb_fine, SoICols_fine, d, M);
+             mu_wide = covguided.unitaryEspritSparse(Yb_wide, SoICols_wide, d, M);
             
              %% Covariances for power estimation (fine)
              RY_fine = (Yb_fine * Yb_fine') / N;      
@@ -165,8 +176,8 @@ for snrIndex = 1:length(ASNR)
              RY_wide = (RY_wide + RY_wide') / 2;
 
              %% Power estimation
-             [~, ~, mu_fineSort, ~]      = estimate_powers_fine(RY_fine, SoICols_fine, mu_fine, M);
-             [~, ~, mu_wideSort_fine, ~] = estimate_powers_fine(RY_wide, SoICols_wide, mu_wide, M);
+             [~, ~, mu_fineSort, ~]      = covguided.estimatePowersFine(RY_fine, SoICols_fine, mu_fine, M);
+             [~, ~, mu_wideSort_fine, ~] = covguided.estimatePowersFine(RY_wide, SoICols_wide, mu_wide, M);
 
              %% --- Per-trial RMS error and failure flag for this k_f ---
              e_vec_fine(kk) = sqrt(mean(angle(exp(1i*(mu_true - mu_fineSort))).^2));
@@ -302,7 +313,7 @@ if isprop(lgd_S1_rmse, 'ItemTokenSize')
 end
 
 drawnow;
-exportgraphics(fig_rmse_S1, 'S1_RMSE_vs_ASNR.pdf', 'ContentType','vector');
+exportgraphics(fig_rmse_S1, fullfile(figDir,'S1_RMSE_vs_ASNR.pdf'), 'ContentType','vector');
 close(fig_rmse_S1);
 
 %% ============ S1: Failure rate vs ASNR (single-column, both methods) ====
@@ -375,7 +386,7 @@ if isprop(lgd_S1_fail, 'ItemTokenSize')
 end
 
 drawnow;
-exportgraphics(fig_fail_S1, 'S1_FailRate_vs_ASNR.pdf', 'ContentType','vector');
+exportgraphics(fig_fail_S1, fullfile(figDir,'S1_FailRate_vs_ASNR.pdf'), 'ContentType','vector');
 close(fig_fail_S1);
 
 %% ================== SAVE S1 RESULTS TO CSV ============================
@@ -424,7 +435,7 @@ Agg2.totalIter  = totalIter * ones(numKf*numASNR,1);
 
 Agg = [Agg; Agg2];
 
-writetable(Agg, 'S1_aggregates.csv');
+writetable(Agg, fullfile(csvDir,'S1_aggregates.csv'));
 
 % ---------- Optional: per-trial subset for ECDF / scatter -------------
 wantASNR = [0 15];   % adjust as you like
@@ -467,7 +478,7 @@ for a = wantASNR
 end
 
 if ~isempty(Trials)
-    writetable(Trials, 'S1_trials_subset.csv');
+    writetable(Trials, fullfile(csvDir,'S1_trials_subset.csv'));
 end
 
 %% ========================================================================

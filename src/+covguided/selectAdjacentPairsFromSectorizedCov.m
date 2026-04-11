@@ -1,4 +1,4 @@
-function [selected_pairs, meta] = select_adjacent_pairs_from_sectorized_cov(R_model, beam_groups, opts)
+function [selected_pairs, meta] = selectAdjacentPairsFromSectorizedCov(R_model, beam_groups, opts)
 % Select best adjacent DFT beam pair per sector from a reconstructed covariance.
 % Simplifications:
 %   - L is fixed to 2 (adjacent beams only).

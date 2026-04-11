@@ -1,11 +1,22 @@
 clearvars;
+addpath(genpath(fullfile(fileparts(mfilename('fullpath')), '..', 'src')));
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', 'config'));
+
+%% --- Output directory setup (repo-relative) -------------------
+repoRoot = fullfile(fileparts(mfilename('fullpath')), '..');
+figDir   = fullfile(repoRoot, 'results', 'figures');
+csvDir   = fullfile(repoRoot, 'results', 'csv');
+if ~exist(figDir,'dir'), mkdir(figDir); end
+if ~exist(csvDir,'dir'), mkdir(csvDir); end
+%% ---------------------------------------------------------------
+
 %% --- Invariants (compute once) ------------------------------------------
 M   = 32;
 N   = 100;
 NRF = 12;
 
 %% RF mask (element-space subsampling for "coarse")
-maskIdx = centered_contiguous_mask(M, NRF);
+maskIdx = covguided.centeredContiguousMask(M, NRF);
 mIdxFlip = NRF:-1:1;                                     % for FBA reflect
 
 %% Precompute once (outside parfor)
@@ -26,8 +37,8 @@ Atrue  = Afun(mu_true);
 R_signal = Atrue * R_source * Atrue';
 
 %% "Oracle" beam set (invariant)
-beamGroups_ini  = sectorize_dft_beams(mu_true, M, 4, 1);
-SoICols_ini     = select_adjacent_pairs_from_sectorized_cov(R_signal, beamGroups_ini);
+beamGroups_ini  = covguided.sectorizeDftBeams(mu_true, M, 4, 1);
+SoICols_ini     = covguided.selectAdjacentPairsFromSectorizedCov(R_signal, beamGroups_ini);
 SoICols_true    = unique(cell2mat(SoICols_ini)).';
 
 %% SNR & noise
@@ -102,19 +113,19 @@ for snrIndex = 1:length(ASNR)
         RY_fba = (RY_coarse + conj(RY_coarse(mIdxFlip, mIdxFlip))) * 0.5;  % already Hermitian
 
         % TLS-ESPRIT on coarse/wideES covariances
-        mu_coarse = tls_esprit(RY_fba,   d);
-        mu_wide   = tls_esprit(RY_wideES, d);
+        mu_coarse = covguided.tlsEsprit(RY_fba,   d);
+        mu_wide   = covguided.tlsEsprit(RY_wideES, d);
 
         % Coarse power estimates (as in your code)
-        [~, ~, mu_courseSort, R_course]     = estimate_powers_course(RY_fba,    maskIdx,  mu_coarse, M);
-        [~, ~, mu_wideSort,   R_wide]       = estimate_powers_course(RY_wideES, 1:NRF,     mu_wide,   M);
+        [~, ~, mu_courseSort, R_course]     = covguided.estimatePowersCoarse(RY_fba,    maskIdx,  mu_coarse, M);
+        [~, ~, mu_wideSort,   R_wide]       = covguided.estimatePowersCoarse(RY_wideES, 1:NRF,     mu_wide,   M);
 
         % Sectorization for fine stage
-        beamGroups_fine = sectorize_dft_beams(mu_courseSort, M, 4, 1);
-        selBeams_fine   = select_adjacent_pairs_from_sectorized_cov(R_course, beamGroups_fine);
+        beamGroups_fine = covguided.sectorizeDftBeams(mu_courseSort, M, 4, 1);
+        selBeams_fine   = covguided.selectAdjacentPairsFromSectorizedCov(R_course, beamGroups_fine);
         SoICols_fine    = unique(cell2mat(selBeams_fine)).';
 
-        beamGroups_wide = sectorize_dft_beams(mu_wideSort,   M, 2, 1);
+        beamGroups_wide = covguided.sectorizeDftBeams(mu_wideSort,   M, 2, 1);
         SoICols_wide    = unique(cell2mat(beamGroups_wide)).';
 
         %%% --- Fine stage synthetic data (element space) ---
@@ -131,9 +142,9 @@ for snrIndex = 1:length(ASNR)
         Yb_true = Yb_full(SoICols_true, :);
 
         % Unitary ESPRIT on fine/wide/true
-        mu_fine     = unitary_esprit_sparse(Yb_fine, SoICols_fine, d, M);
-        mu_wideFine = unitary_esprit_sparse(Yb_wide, SoICols_wide, d, M);
-        mu_trueFine = unitary_esprit_sparse(Yb_true, SoICols_true, d, M);
+        mu_fine     = covguided.unitaryEspritSparse(Yb_fine, SoICols_fine, d, M);
+        mu_wideFine = covguided.unitaryEspritSparse(Yb_wide, SoICols_wide, d, M);
+        mu_trueFine = covguided.unitaryEspritSparse(Yb_true, SoICols_true, d, M);
 
         % Covariances for power estimation (fine)
         RY_fine      = (Yb_fine * Yb_fine') / N;      RY_fine      = (RY_fine      + RY_fine')/2;
@@ -141,9 +152,9 @@ for snrIndex = 1:length(ASNR)
         RY_trueFine  = (Yb_true * Yb_true') / N;      RY_trueFine  = (RY_trueFine  + RY_trueFine')/2;
 
         % power estimation
-        [~, ~, mu_fineSort,     R_fine]     = estimate_powers_fine(RY_fine,     SoICols_fine, mu_fine,     M);
-        [~, ~, mu_wideFineSort, R_wideFine] = estimate_powers_fine(RY_wideFine, SoICols_wide, mu_wideFine, M);
-        [~, ~, mu_trueSort,     R_trueFine] = estimate_powers_fine(RY_trueFine, SoICols_true, mu_trueFine, M);
+        [~, ~, mu_fineSort,     R_fine]     = covguided.estimatePowersFine(RY_fine,     SoICols_fine, mu_fine,     M);
+        [~, ~, mu_wideFineSort, R_wideFine] = covguided.estimatePowersFine(RY_wideFine, SoICols_wide, mu_wideFine, M);
+        [~, ~, mu_trueSort,     R_trueFine] = covguided.estimatePowersFine(RY_trueFine, SoICols_true, mu_trueFine, M);
         
         % --- build local row results (scalars -> 1x6 vectors)
         e_vec = [ ...
@@ -155,11 +166,11 @@ for snrIndex = 1:length(ASNR)
         ];
 
         lpa_vec = [ ...
-        compute_subspace_angle_metrics(R_signal, R_course,    d), ...
-        compute_subspace_angle_metrics(R_signal, R_wide,      d), ...
-        compute_subspace_angle_metrics(R_signal, R_fine,      d), ...
-        compute_subspace_angle_metrics(R_signal, R_wideFine,  d), ...
-        compute_subspace_angle_metrics(R_signal, R_trueFine,  d)  ...
+        covguided.computeSubspaceAngleMetrics(R_signal, R_course,    d), ...
+        covguided.computeSubspaceAngleMetrics(R_signal, R_wide,      d), ...
+        covguided.computeSubspaceAngleMetrics(R_signal, R_fine,      d), ...
+        covguided.computeSubspaceAngleMetrics(R_signal, R_wideFine,  d), ...
+        covguided.computeSubspaceAngleMetrics(R_signal, R_trueFine,  d)  ...
         ];
 
         % --- single consistent sliced writes
@@ -259,7 +270,7 @@ legLines_RMSE = findobj(lgd_RMSE, 'Type','line');
 set(legLines_RMSE, 'LineWidth', 0.75, 'MarkerSize', 3);
 %
 prettyAxes(gca, axfs);
-exportgraphics(gcf,'fig1_rmse_vs_asnr.pdf','ContentType','vector');
+exportgraphics(gcf, fullfile(figDir,'fig1_rmse_vs_asnr.pdf'), 'ContentType','vector');
 
 %% ====== Fig 2: Gap-to-CRB vs ASNR ======
 figure('Color','w','Units','centimeters');
@@ -311,7 +322,7 @@ legLines_GapCRB = findobj(lgd_GapCRB, 'Type','line');
 set(legLines_GapCRB, 'LineWidth', 0.75, 'MarkerSize', 3);
 
 prettyAxes(gca, axfs);
-exportgraphics(gcf, 'fig2_gap_to_crb.pdf', 'ContentType','vector');
+exportgraphics(gcf, fullfile(figDir,'fig2_gap_to_crb.pdf'), 'ContentType','vector');
 
 %% ====== Fig 3: Failure-Rate vs ASNR with Wilson 95% CI (linear scale, % units) ======
 figure('Color','w','Units','centimeters');
@@ -376,7 +387,7 @@ set(legLines_Fail, 'LineWidth', 0.75, 'MarkerSize', 3);
 prettyAxes(gca, axfs);
 
 % optional: vector export
-exportgraphics(gcf, 'fig3_failrate.pdf', 'ContentType','vector');
+exportgraphics(gcf, fullfile(figDir,'fig3_failrate.pdf'), 'ContentType','vector');
 
 %% ====== Fig 4: ECDFs at 0 dB and 15 dB (Proposed Fine, [5] Fine, Oracle) ======
 lowIdx = find(ASNR == -5, 1);
@@ -448,7 +459,7 @@ lgd_ECDF = legend(hECDF, labelsECDF, ...
 lgd_ECDF.Layout.Tile = 'south';
 
 % export graphics
-exportgraphics(gcf, 'fig4_ecdf_0dB_15dB.pdf', 'ContentType','vector');
+exportgraphics(gcf, fullfile(figDir,'fig4_ecdf_0dB_15dB.pdf'), 'ContentType','vector');
 
 %% ====== Fig 5: LPA–Error Scatter at 15 dB (Proposed Fine vs [5] Fine) ======
 snrScatter = hiIdx;   % 15 dB
@@ -474,7 +485,7 @@ legend('Location','northeast', ...
        'Box','on');
 grid on; box on;
 prettyAxes(gca, axfs);
-exportgraphics(gcf, 'fig5_scatter_15dB.pdf', 'ContentType','vector');
+exportgraphics(gcf, fullfile(figDir,'fig5_scatter_15dB.pdf'), 'ContentType','vector');
 
 %% ====== Local helpers (keep at end of script) ======
 function [lo, hi] = wilsonCI(p, n, conf)
@@ -545,7 +556,7 @@ end
 %         sqrt(MSE(m,:)).', failRate(m,:).', sqrtCRB(:), gap_dB(m,:).', ...
 %         'VariableNames', {'ASNR','method','method_name','RMSE','FailRate','sqrtCRB','gap_dB'})]; %#ok<AGROW>
 % end
-% writetable(Agg, 'aggregates.csv');
+% writetable(Agg, fullfile(csvDir,'aggregates.csv'));
 %% ---------- Per-trial subset for ECDF/scatter ----------
 % wantASNR = [-5, 0, 5, 15];           % adjust if you like
 % Trials = table;
@@ -561,4 +572,4 @@ end
 %             'VariableNames', {'ASNR','method','trial','err_rms','lpa_deg','method_name'})]; %#ok<AGROW>
 %     end
 % end
-% writetable(Trials, 'trials.csv');
+% writetable(Trials, fullfile(csvDir,'trials.csv'));

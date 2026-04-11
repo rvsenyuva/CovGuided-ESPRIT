@@ -1,4 +1,4 @@
-function plot_pareto_A1(med_t_total_ms, rmse_rad, varargin)
+function plotParetoA1(med_t_total_ms, rmse_rad, varargin)
 %PLOT_PARETO_A1  Pareto RMSE vs Runtime (A1) with per-SNR hulls + optional dashed guides + side table.
 % Styled to match A2 figures (Times New Roman, IEEE single-column, lines(3) palette).
 %
@@ -195,8 +195,8 @@ lgd.ItemTokenSize = [8 6];
 %% ---------- save vector PDF ----------
 if ~isempty(outpdf)
     try
-        if exist('save_vector_pdf','file')==2
-            save_vector_pdf(fig, outpdf);
+        if exist('covguided.saveVectorPdf','file')==2 || exist('saveVectorPdf','file')==2
+            covguided.saveVectorPdf(fig, outpdf);
         else
             exportgraphics(fig, outpdf, 'ContentType','vector','BackgroundColor','none');
         end

@@ -1,4 +1,4 @@
-function beam_groups = sectorize_dft_beams(mu, M, W, zeta)
+function beam_groups = sectorizeDftBeams(mu, M, W, zeta)
 % Sectorize DFT beamspace using sliding-window sectorization method
 %
 % Inputs:

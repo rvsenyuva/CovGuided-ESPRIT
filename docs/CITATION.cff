@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "CovGuided-ESPRIT: Covariance-Guided DFT Beam Selection for Beamspace ESPRIT in Hybrid mmWave Sensor Arrays"
+authors:
+  - family-names: "Şenyuva"
+    given-names: "Rıfat Volkan"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # TODO: replace with actual ORCID
+    affiliation: "Maltepe University, Istanbul, Turkey"
+    email: "rifatvolkansenyuva@maltepe.edu.tr"
+version: "1.0.0"
+date-released: "2026-04-17"  # Update to actual Zenodo release date (Thu 16 Apr)
+license: MIT
+repository-code: "https://github.com/rvsenyuva/CovGuided-ESPRIT"
+url: "https://github.com/rvsenyuva/CovGuided-ESPRIT"
+doi: "10.5281/zenodo.XXXXXXX"  # TODO: replace with actual Zenodo DOI after minting (Thu 16 Apr)
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.XXXXXXX"  # TODO: replace with actual Zenodo DOI
+    description: "Zenodo archive of this software"
+  - type: url
+    value: "https://arxiv.org/abs/2512.00898"
+    description: "arXiv preprint of the accompanying paper"
+abstract: >
+  MATLAB simulation code for "Covariance-Guided DFT Beam Selection for
+  Beamspace ESPRIT in Hybrid mmWave Sensor Arrays". Implements a four-stage
+  coarse-to-fine direction-of-arrival estimation pipeline for hybrid
+  analog/digital mmWave sensor arrays: (1) coarse TLS-ESPRIT on a virtual
+  centro-symmetric subarray, (2) NNLS-based covariance fitting with
+  Toeplitz-PSD projection, (3) covariance-guided DFT beam selection, and
+  (4) fine Unitary ESPRIT on the selected beam subset. Includes all
+  entry-point scripts for reproducing the main paper figures and supplementary
+  ablation studies, a reproducibility validation script, and committed CSV
+  benchmark results.
+keywords:
+  - "direction-of-arrival estimation"
+  - "beamspace ESPRIT"
+  - "hybrid mmWave arrays"
+  - "covariance fitting"
+  - "DFT beam selection"
+  - "millimeter-wave sensing"
+  - "array signal processing"
+  - "MATLAB"
+preferred-citation:
+  type: article
+  title: "Covariance-Guided DFT Beam Selection for Beamspace ESPRIT in Hybrid mmWave Sensor Arrays"
+  authors:
+    - family-names: "Şenyuva"
+      given-names: "Rıfat Volkan"
+      affiliation: "Maltepe University, Istanbul, Turkey"
+  journal: "IEEE Sensors Journal"
+  year: 2026
+  notes: "Major revision in preparation, April 2026. Manuscript ID: Sensors-100615-2025."
+  url: "https://arxiv.org/abs/2512.00898"

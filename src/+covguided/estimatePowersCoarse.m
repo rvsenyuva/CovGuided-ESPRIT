@@ -1,4 +1,4 @@
-function [p_est, sigma2_est, mu_sorted, R_est] = estimate_powers_course(R_hat, maskIdx, mu_hat, M)
+function [p_est, sigma2_est, mu_sorted, R_est] = estimatePowersCoarse(R_hat, maskIdx, mu_hat, M)
     % Inputs:
     %   R_hat  : [NRF x NRF] covariance matrix
     %   mu_hat : [d x 1] estimated spatial frequencies
@@ -44,6 +44,6 @@ function [p_est, sigma2_est, mu_sorted, R_est] = estimate_powers_course(R_hat, m
     R = Afull(:, idx_p) * diag(p_sorted) * Afull(:, idx_p)';
 
     %% Toeplitz plus PSD Projection
-    R_est = toeplitz_projection(R);
+    R_est = covguided.toeplitzProjection(R);
 
 end

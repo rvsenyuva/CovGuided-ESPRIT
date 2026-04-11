@@ -1,4 +1,4 @@
-function mu_est = tls_esprit(R, d)
+function mu_est = tlsEsprit(R, d)
 % TLS-ESPRIT with basic safeguards.
 % R     : NRF x NRF covariance (FBA-averaged)
 % J1,J2 : selection matrices for given shift Delta

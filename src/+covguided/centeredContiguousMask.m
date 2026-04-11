@@ -1,4 +1,4 @@
-function idx = centered_contiguous_mask(M, NRF)
+function idx = centeredContiguousMask(M, NRF)
     % Preconditions for exact symmetry:
     % - if mod(M,2)==0, require mod(NRF,2)==0
     if mod(M,2)==0 && mod(NRF,2)==1

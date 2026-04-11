@@ -1,5 +1,4 @@
-
-function save_vector_pdf(figOrAxes, filename)
+function saveVectorPdf(figOrAxes, filename)
 %SAVE_VECTOR_PDF Export a MATLAB figure/axes as a **vector** PDF with embedded fonts.
 %   save_vector_pdf(gcf, 'figure.pdf');
 %   save_vector_pdf(gca, 'figure.pdf');

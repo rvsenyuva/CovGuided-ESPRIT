@@ -1,5 +1,5 @@
 % ---------- FUNCTION 1: Subspace Angle Errors (Haardt + Principal Angle) ----------
-function theta_haardt = compute_subspace_angle_metrics(U_true, U_est, d)
+function theta_haardt = computeSubspaceAngleMetrics(U_true, U_est, d)
 % Inputs:
 %   U_true: MxM true covariance matrix
 %   U_est : MxM estimated covariance matrix

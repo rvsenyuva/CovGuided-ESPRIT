@@ -1,4 +1,4 @@
-function mu_UE = unitary_esprit_sparse(Y, beamCols, d, M)
+function mu_UE = unitaryEspritSparse(Y, beamCols, d, M)
 % Unitary ESPRIT using selected beamCols from phase-shifted DFT basis
 % Inputs:
 %   Y        : [NRF x N] beamspace data matrix

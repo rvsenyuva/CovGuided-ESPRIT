@@ -1,4 +1,4 @@
-function [selected_sets, meta] = select_beamsets_from_sectorized_cov(R_model, beam_groups, K, opts)
+function [selected_sets, meta] = selectBeamsetsFromSectorizedCov(R_model, beam_groups, K, opts)
 % Generalizes select_adjacent_pairs_from_sectorized_cov to K >= 2 beams/sector.
 % Fast path: precomputes full DFT bank and uses capture = tr((G+γI)^{-1} (B^H Rs B)).
 % Optional pruning: keep only windows whose center is among top-q beam energies in beamspace.

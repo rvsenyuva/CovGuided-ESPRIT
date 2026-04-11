@@ -1,3 +1,15 @@
+clearvars;
+addpath(genpath(fullfile(fileparts(mfilename('fullpath')), '..', 'src')));
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', 'config'));
+
+%% --- Output directory setup (repo-relative) -------------------
+repoRoot = fullfile(fileparts(mfilename('fullpath')), '..');
+figDir   = fullfile(repoRoot, 'results', 'figures');
+csvDir   = fullfile(repoRoot, 'results', 'csv');
+if ~exist(figDir,'dir'), mkdir(figDir); end
+if ~exist(csvDir,'dir'), mkdir(csvDir); end
+%% ---------------------------------------------------------------
+
 % ==== A2: Sector-edge stress test =========================================
 M          = 32;
 N          = 100;
@@ -7,7 +19,7 @@ NRF_fine   = 6;                    % fine=6 beams
 W          = 6;                    % sector window width in beams
 K          = 17;                   % 15–21 grid points across the sector width
 
-maskIdx    = centered_contiguous_mask(M, NRF_coarse);       % reuse your mask
+maskIdx    = covguided.centeredContiguousMask(M, NRF_coarse);       % reuse your mask
 mIdxFlip   = NRF_coarse:-1:1;                               % for FBA reflect (coarse size)
 
 %% Steering (precompute once)
@@ -122,16 +134,16 @@ for sIdx = 1:numel(ASNR_set)
             RY_fba    = 0.5 * (RY_coarse + conj(RY_coarse(mIdxFlip, mIdxFlip)));
 
             % TLS-ESPRIT on coarse/wideES covariances
-            mu_coarse = tls_esprit(RY_fba,     d);
+            mu_coarse = covguided.tlsEsprit(RY_fba,     d);
 
             % Coarse power estimates (unchanged)
-            [~, ~, mu_courseSort, R_course] = estimate_powers_course(RY_fba,     maskIdx,      mu_coarse, M);
+            [~, ~, mu_courseSort, R_course] = covguided.estimatePowersCoarse(RY_fba,     maskIdx,      mu_coarse, M);
             
             % Single sectorization call with W:
-            beamGroups    = sectorize_dft_beams(mu_courseSort, M, W, 1);
+            beamGroups    = covguided.sectorizeDftBeams(mu_courseSort, M, W, 1);
 
             % Cov-guided: pick adjacent pair(s) from the *same* coarse covariance
-            selPairs      = select_adjacent_pairs_from_sectorized_cov(R_course, beamGroups);
+            selPairs      = covguided.selectAdjacentPairsFromSectorizedCov(R_course, beamGroups);
             SoICols_fine  = pad_truncate_to_nrf(unique(cell2mat(selPairs)).', NRF_fine, M);
             
             % Sectorization baseline: fixed window from the same beamGroups
@@ -151,16 +163,16 @@ for sIdx = 1:numel(ASNR_set)
             Yb_wide = Yb_full(SoICols_wide, :);
 
             % Run the same fine-stage ESPRIT (unitary sparse variant)
-            mu_fine     = unitary_esprit_sparse(Yb_fine, SoICols_fine, d, M);
-            mu_wideFine = unitary_esprit_sparse(Yb_wide, SoICols_wide, d, M);
+            mu_fine     = covguided.unitaryEspritSparse(Yb_fine, SoICols_fine, d, M);
+            mu_wideFine = covguided.unitaryEspritSparse(Yb_wide, SoICols_wide, d, M);
 
             % Covariances for fine power estimation
             RY_fine     = (Yb_fine * Yb_fine') / N;     RY_fine     = (RY_fine + RY_fine')/2;
             RY_wideFine = (Yb_wide * Yb_wide') / N;     RY_wideFine = (RY_wideFine + RY_wideFine')/2;
 
             % Fine power estimation
-            [~, ~, mu_fineSort,     ~] = estimate_powers_fine(RY_fine,     SoICols_fine, mu_fine,     M);
-            [~, ~, mu_wideFineSort, ~] = estimate_powers_fine(RY_wideFine, SoICols_wide, mu_wideFine, M);
+            [~, ~, mu_fineSort,     ~] = covguided.estimatePowersFine(RY_fine,     SoICols_fine, mu_fine,     M);
+            [~, ~, mu_wideFineSort, ~] = covguided.estimatePowersFine(RY_wideFine, SoICols_wide, mu_wideFine, M);
 
             % Per-source mu-errors (wrapped to [-pi,pi))
             err_mu_fine     = angle(exp(1i*(mu_true.' - mu_fineSort(:).')));      % 1xd
@@ -293,7 +305,7 @@ if isprop(lgd, 'ItemTokenSize')
 end
 
 drawnow;
-exportgraphics(fig_rmse, 'A2_RMSE_vs_delta.pdf', 'ContentType','vector');
+exportgraphics(fig_rmse, fullfile(figDir,'A2_RMSE_vs_delta.pdf'), 'ContentType','vector');
 close(fig_rmse);
 
 
@@ -375,7 +387,7 @@ if isprop(lgd2, 'ItemTokenSize')
 end
 
 drawnow;
-exportgraphics(fig_fail, 'A2_FailRate_vs_delta.pdf', 'ContentType','vector');
+exportgraphics(fig_fail, fullfile(figDir,'A2_FailRate_vs_delta.pdf'), 'ContentType','vector');
 close(fig_fail);
 
 
@@ -422,7 +434,7 @@ end
 
 % Timestamped filename to avoid accidental overwrite
 ts     = datestr(now, 'yyyymmdd_HHMMSS');
-outCsv = sprintf('A2_sector_edge_results_M%d_W%d_%s.csv', M, W, ts);
+outCsv = fullfile(csvDir, sprintf('A2_sector_edge_results_M%d_W%d_%s.csv', M, W, ts));
 writetable(T, outCsv);
 
 fprintf('A2 results written to %s\n', outCsv);

@@ -1,4 +1,15 @@
 clearvars;
+addpath(genpath(fullfile(fileparts(mfilename('fullpath')), '..', 'src')));
+addpath(fullfile(fileparts(mfilename('fullpath')), '..', 'config'));
+
+%% --- Output directory setup (repo-relative) -------------------
+repoRoot = fullfile(fileparts(mfilename('fullpath')), '..');
+figDir   = fullfile(repoRoot, 'results', 'figures');
+csvDir   = fullfile(repoRoot, 'results', 'csv');
+if ~exist(figDir,'dir'), mkdir(figDir); end
+if ~exist(csvDir,'dir'), mkdir(csvDir); end
+%% ---------------------------------------------------------------
+
 %% --- Invariants (compute once) ------------------------------------------
 M   = 32;
 N   = 100;
@@ -12,7 +23,7 @@ opts_sel = struct('eig_tol_scale',1e-6, 'tikhonov_gamma',0, ...
                   'prune_topq', 4);          % 0 = off; try 3 for ~3–5× fewer windows
 
 %% RF mask (element-space subsampling for "coarse")
-maskIdx  = centered_contiguous_mask(M, NRF);
+maskIdx  = covguided.centeredContiguousMask(M, NRF);
 mIdxFlip = NRF:-1:1;                                      % for FBA reflect
 
 %% Precompute once (outside parfor)
@@ -99,29 +110,29 @@ for k = 1:length(K_FINE)
             RY_fba = (RY_coarse + conj(RY_coarse(mIdxFlip, mIdxFlip))) * 0.5;  % already Hermitian
 
             % TLS-ESPRIT on coarse/wideES covariances
-            mu_coarse = tls_esprit(RY_fba,   d);
-            mu_wide   = tls_esprit(RY_wideES, d);
+            mu_coarse = covguided.tlsEsprit(RY_fba,   d);
+            mu_wide   = covguided.tlsEsprit(RY_wideES, d);
 
             % Coarse power estimates
             t_cov_tic1                       = tic;
-            [~, ~, mu_courseSort, R_course]  = estimate_powers_course(RY_fba,    maskIdx,  mu_coarse, M);
+            [~, ~, mu_courseSort, R_course]  = covguided.estimatePowersCoarse(RY_fba,    maskIdx,  mu_coarse, M);
             t_cov1                           = toc(t_cov_tic1);
         
             % Coarse power estimates
             t_cov_tic2                     = tic;
-            [~, ~, mu_wideSort,   ~]       = estimate_powers_course(RY_wideES, 1:NRF,     mu_wide,   M);
+            [~, ~, mu_wideSort,   ~]       = covguided.estimatePowersCoarse(RY_wideES, 1:NRF,     mu_wide,   M);
             t_cov2                         = toc(t_cov_tic2);
     
             % covariance-based beam selection for fine stage
             t_sel_tic       = tic;
-            beamGroups_fine = sectorize_dft_beams(mu_courseSort, M, 4, 1);
-            selBeams_fine   = select_beamsets_from_sectorized_cov(R_course, beamGroups_fine, K_FINE_CURRENT, opts_sel);
+            beamGroups_fine = covguided.sectorizeDftBeams(mu_courseSort, M, 4, 1);
+            selBeams_fine   = covguided.selectBeamsetsFromSectorizedCov(R_course, beamGroups_fine, K_FINE_CURRENT, opts_sel);
             SoICols_fine    = unique(cell2mat(selBeams_fine)).';
             t_sel           = toc(t_sel_tic);
 
             % sectorization for fine stage
             t_sec_tic       = tic;
-            beamGroups_wide = sectorize_dft_beams(mu_wideSort,   M, K_FINE_CURRENT, 1);
+            beamGroups_wide = covguided.sectorizeDftBeams(mu_wideSort,   M, K_FINE_CURRENT, 1);
             SoICols_wide    = unique(cell2mat(beamGroups_wide)).';
             t_sec           = toc(t_sec_tic);
     
@@ -139,12 +150,12 @@ for k = 1:length(K_FINE)
 
             % Unitary ESPRIT on fine
             t_es_tic1    = tic;
-            mu_fine     = unitary_esprit_sparse(Yb_fine, SoICols_fine, d, M);
+            mu_fine     = covguided.unitaryEspritSparse(Yb_fine, SoICols_fine, d, M);
             t_es1        = toc(t_es_tic1);
     
             % Unitary ESPRIT on wide beams
             t_es_tic2   = tic;
-            mu_wideFine = unitary_esprit_sparse(Yb_wide, SoICols_wide, d, M);
+            mu_wideFine = covguided.unitaryEspritSparse(Yb_wide, SoICols_wide, d, M);
             t_es2       = toc(t_es_tic2);
     
             % Covariances for power estimation (fine)
@@ -152,8 +163,8 @@ for k = 1:length(K_FINE)
             RY_wideFine  = (Yb_wide * Yb_wide') / N;      RY_wideFine  = (RY_wideFine  + RY_wideFine')/2;
     
             % power estimation
-            [~, ~, mu_fineSort,     R_fine]     = estimate_powers_fine(RY_fine,     SoICols_fine, mu_fine,     M);
-            [~, ~, mu_wideFineSort, R_wideFine] = estimate_powers_fine(RY_wideFine, SoICols_wide, mu_wideFine, M);
+            [~, ~, mu_fineSort,     R_fine]     = covguided.estimatePowersFine(RY_fine,     SoICols_fine, mu_fine,     M);
+            [~, ~, mu_wideFineSort, R_wideFine] = covguided.estimatePowersFine(RY_wideFine, SoICols_wide, mu_wideFine, M);
             
             % --- build local row results (scalars -> 1x6 vectors)
             e_vec = [ ...
@@ -253,18 +264,15 @@ fprintf('  t_total_ms = %.4f\n', med_t_total_ms(rowSect1212, col3dB));
 fprintf('  RMSE_rad   = %.6f\n', rmse_rad(rowSect1212, col3dB));
 
 
-outdir = 'figures_pdf';
-if ~exist(outdir,'dir'), mkdir(outdir); end
-
 %% Style for A1 Pareto plot (match A2 figures)
-plot_pareto_A1(med_t_total_ms, rmse_rad, ...
+covguided.plotParetoA1(med_t_total_ms, rmse_rad, ...
     'snr', snr_use, ...
     'condLabels', condLabels, ...
     'breakdown', bk, ...
     'connect_all_per_snr', true, ...  % dashed SNR-wise connectors
     'print_hull', true, ...
-    'outpdf', fullfile('figures_pdf','A1_pareto.pdf'), ...
-    'tablecsv', fullfile('figures_pdf','A1_timing_table.csv'));
+    'outpdf', fullfile(figDir,'A1_pareto.pdf'), ...
+    'tablecsv', fullfile(csvDir,'A1_timing_table.csv'));
 
 % ========================================================================
 % Local progress bar function with ASNR label (works for scripts)

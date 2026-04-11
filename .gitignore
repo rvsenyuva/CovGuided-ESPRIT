@@ -1,34 +1,24 @@
-# CovGuided-ESPRIT — .gitignore
-# Paper: Sensors-100615-2025
+# MATLAB auto-save files
+*.asv
 
-# ---- MATLAB generated outputs -------------------------------------------
-results/
-figures/
-*.mat
-*.fig
-*.pdf
-*.png
-
-# Keep benchmark CSVs in data/ (they ARE committed)
-!data/*.csv
-
-# ---- Large data files ---------------------------------------------------
-# S1_trials_subset.csv is 5.1 MB (120,000 rows). Include or exclude below.
-# To include: comment out the next line.
-# To exclude: leave as-is and add a note in README that users must generate it.
-data/S1_trials_subset.csv
-
-# ---- OS / editor noise --------------------------------------------------
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
-
-# ---- MATLAB noise -------------------------------------------------------
-*.asv          # auto-save files
-slprj/
+# MATLAB compiled MEX files (all platforms)
 *.mex*
-codegen/
+*.mexa64
+*.mexmaci64
+*.mexw64
+
+# Simulink build artifacts
+slprj/
+
+# Generated figure PDFs (kept in results/figures/ locally, not committed)
+results/figures/*.pdf
+results/figures/*.fig
+
+# MATLAB workspace saves
+*.mat
+
+# macOS metadata
+.DS_Store
+
+# Windows thumbnail cache
+Thumbs.db

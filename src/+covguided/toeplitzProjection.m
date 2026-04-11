@@ -1,4 +1,4 @@
-function T_psd = toeplitz_projection(R)
+function T_psd = toeplitzProjection(R)
 % Projects a Hermitian matrix R onto the nearest Hermitian Toeplitz matrix
 % Input:
 %   R : [r x r] Hermitian sample covariance matrix
