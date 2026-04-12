@@ -28,10 +28,11 @@ abstract: >
   analog/digital mmWave sensor arrays: (1) coarse TLS-ESPRIT on a virtual
   centro-symmetric subarray, (2) NNLS-based covariance fitting with
   Toeplitz-PSD projection, (3) covariance-guided DFT beam selection, and
-  (4) fine Unitary ESPRIT on the selected beam subset. Includes all
-  entry-point scripts for reproducing the main paper figures and supplementary
-  ablation studies, a reproducibility validation script, and committed CSV
-  benchmark results.
+  (4) fine Unitary ESPRIT on the selected beam subset. Includes five
+  entry-point scripts for reproducing all paper figures (runMainExperiment,
+  runTimingBenchmark, runSectorEdgeAblation, runFineStageSweep,
+  runPhaseQuantizationStudy), a reproducibility validation script, and
+  committed CSV benchmark results.
 keywords:
   - "direction-of-arrival estimation"
   - "beamspace ESPRIT"

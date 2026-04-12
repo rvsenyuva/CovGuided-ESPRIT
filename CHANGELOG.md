@@ -17,15 +17,19 @@ Sensor Arrays" (Manuscript ID: Sensors-100615-2025, IEEE Sensors Journal,
 April 2026).
 
 ### Added
-- `src/+covguided/` — MATLAB package namespace containing all 12 core and
+- `src/+covguided/` — MATLAB package namespace containing all 15 core and
   utility functions with camelCase names (e.g., `tlsEsprit`, `unitaryEspritSparse`,
   `selectBeamsetsFromSectorizedCov`, etc.)
-- `experiments/` — four descriptively-named entry-point scripts:
+- `experiments/` — five descriptively-named entry-point scripts:
   `runMainExperiment.m`, `runTimingBenchmark.m`, `runSectorEdgeAblation.m`,
-  `runFineStageSweep.m`
+  `runFineStageSweep.m`, `runPhaseQuantizationStudy.m`
+- `src/+covguided/dftDictionary.m` — centered DFT dictionary builder (FFT phase convention); helper for `runPhaseQuantizationStudy`
+- `src/+covguided/crbSpatialFreq.m` — CRB approximation helper; used by `runPhaseQuantizationStudy`
+- `src/+covguided/drawSpatialFreqs.m` — random spatial frequency draw helper; used by `runPhaseQuantizationStudy`
+- `results/csv/phase_quant_study_20260412_192029.csv` — R1.1 Monte Carlo output: RMSE vs. phase-shifter resolution B ∈ {2,3,4,5,6,∞} at ASNR ∈ {0,15} dB (28 rows, 10 columns)
 - `config/getSimParams.m` — single source of truth for all simulation parameters
-- `results/csv/` — committed CSV benchmark results (3 files: A1 timing table,
-  S1 aggregates, A2 sector-edge ablation)
+- `results/csv/` — committed CSV benchmark results (4 files: A1 timing table,
+  S1 aggregates, A2 sector-edge ablation, R1.1 phase quantization study)
 - `validation/validateReproducibility.m` — automated benchmark checker; all 4
   checks pass at 0.00% RMSE error against committed CSVs
 - `LICENSE` — MIT License
@@ -39,7 +43,7 @@ April 2026).
 - All function filenames updated from `snake_case_m` convention to `camelCase`
 - Typo fixed: `estimate_powers_course` → `estimatePowersCoarse` (the algorithm
   implements coarse-stage estimation; "course" was a spelling error)
-- README updated to reflect new structure; Zenodo badge added
+- README updated to reflect new structure, five experiment scripts, and Zenodo badge
 
 ### Fixed
 - `estimate_powers_course.m`: filename typo corrected to `estimatePowersCoarse.m`
