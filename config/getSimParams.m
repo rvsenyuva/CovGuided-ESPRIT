@@ -110,7 +110,7 @@ p.R_signal = p.Atrue * p.R_source * p.Atrue';      % M x M signal covariance
 p.phase_k  = exp(1i * (p.M - 1) * pi * (0:p.M-1).' / p.M);  % M x 1
 
 % Virtual subarray indices (requires centered_contiguous_mask on path)
-p.maskIdx  = centered_contiguous_mask(p.M, p.NRF);   % 1 x NRF
+p.maskIdx  = covguided.centeredContiguousMask(p.M, p.NRF);   % 1 x NRF
 p.mIdxFlip = p.NRF:-1:1;                             % FBA reflection index
 
 end
