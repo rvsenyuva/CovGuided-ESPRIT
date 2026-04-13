@@ -22,3 +22,7 @@ results/figures/*.fig
 
 # Windows thumbnail cache
 Thumbs.db
+
+# New-machine re-runs of canonical CSVs (Dec 2025 versions are the paper's canonical results)
+results/csv/A2_sector_edge_results_M32_W6_2026*.csv
+results/csv/S1_trials_subset.csv
