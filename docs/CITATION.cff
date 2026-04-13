@@ -5,6 +5,7 @@ title: "CovGuided-ESPRIT: Covariance-Guided DFT Beam Selection for Beamspace ESP
 authors:
   - family-names: "Şenyuva"
     given-names: "Rıfat Volkan"
+    orcid: "https://orcid.org/0000-0003-2928-0627"
     affiliation: "Maltepe University, Istanbul, Turkey"
     email: "rifatvolkansenyuva@maltepe.edu.tr"
 version: "1.0.0"
@@ -47,6 +48,7 @@ preferred-citation:
   authors:
     - family-names: "Şenyuva"
       given-names: "Rıfat Volkan"
+      orcid: "https://orcid.org/0000-0003-2928-0627"
       affiliation: "Maltepe University, Istanbul, Turkey"
   journal: "IEEE Sensors Journal"
   year: 2026
