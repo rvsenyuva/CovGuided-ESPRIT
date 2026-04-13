@@ -77,6 +77,12 @@ sqrt_CRB       = zeros(numel(ASNR_set), K);
 
 
 %% ========================= MAIN LOOPS =========================
+fprintf('runSectorEdgeAblation: %d SNR points x %d delta points = %d ticks total\n', ...
+        numel(ASNR_set), K, numel(ASNR_set)*K);
+totalTicks = numel(ASNR_set) * K;
+ticksDone  = 0;
+tStart     = tic;
+
 for sIdx = 1:numel(ASNR_set)
 
     nv    = noiseVar(sIdx);
@@ -198,6 +204,15 @@ for sIdx = 1:numel(ASNR_set)
         % Failure rates = fraction of trials where any source failed
         Fail_vs_delta(sIdx, 1, t) = mean(fail_flags_fine);
         Fail_vs_delta(sIdx, 2, t) = mean(fail_flags_sector);
+
+        %% === Progress report =============================================
+        ticksDone = ticksDone + 1;
+        elapsed   = toc(tStart);
+        eta       = elapsed / ticksDone * (totalTicks - ticksDone);
+        fprintf('  [%2d/%2d] SNR=%+3d dB  delta=%+.4f rad  FR_cov=%5.1f%%  FR_sect=%5.1f%%  elapsed=%4ds  ETA=%4ds\n', ...
+                ticksDone, totalTicks, ASNR_set(sIdx), delta(t), ...
+                100*Fail_vs_delta(sIdx,1,t), 100*Fail_vs_delta(sIdx,2,t), ...
+                round(elapsed), round(eta));
     end
 end
 
