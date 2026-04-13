@@ -3,10 +3,9 @@
 **Covariance-Guided DFT Beam Selection for Beamspace ESPRIT in Hybrid mmWave Sensor Arrays**
 
 [![arXiv](https://img.shields.io/badge/arXiv-2512.00898-b31b1b.svg)](https://arxiv.org/abs/2512.00898)
-[![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://doi.org/10.5281/zenodo.XXXXXXX)
-<!-- TODO (Thu 16 Apr): replace XXXXXXX with actual Zenodo DOI after minting -->
+[![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.19553631.svg)](https://doi.org/10.5281/zenodo.19553631)
 
-**IEEE Sensors Journal (major revision in preparation, April 2026)**  
+**IEEE Sensors Journal (major revision submitted, April 2026)**
 Manuscript ID: Sensors-100615-2025
 
 ---
@@ -172,7 +171,7 @@ If you use this code, please cite:
              in Hybrid mmWave Sensor Arrays},
   journal = {IEEE Sensors Journal},
   year    = {2026},
-  note    = {Major revision in preparation. Preprint: arXiv:2512.00898}
+  note    = {Major revision submitted, April 2026. Preprint: arXiv:2512.00898}
 }
 
 @misc{senyuva2026covguided_code,
@@ -181,11 +180,10 @@ If you use this code, please cite:
                {DFT} beam selection for beamspace {ESPRIT}},
   year      = {2026},
   publisher = {Zenodo},
-  doi       = {10.5281/zenodo.XXXXXXX},
-  url       = {https://github.com/rvsenyuva/CovGuided-ESPRIT}
+  doi       = {10.5281/zenodo.19553631},
+  url       = {https://doi.org/10.5281/zenodo.19553631}
 }
 ```
-<!-- TODO (Thu 16 Apr): replace XXXXXXX with actual Zenodo DOI after minting -->
 
 ---
 

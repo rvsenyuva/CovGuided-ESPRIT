@@ -13,10 +13,10 @@ date-released: "2026-04-13"
 license: MIT
 repository-code: "https://github.com/rvsenyuva/CovGuided-ESPRIT"
 url: "https://github.com/rvsenyuva/CovGuided-ESPRIT"
-doi: "10.5281/zenodo.XXXXXXX"
+doi: "10.5281/zenodo.19553631"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.XXXXXXX"
+    value: "10.5281/zenodo.19553631"
     description: "Zenodo archive of this software"
   - type: url
     value: "https://arxiv.org/abs/2512.00898"

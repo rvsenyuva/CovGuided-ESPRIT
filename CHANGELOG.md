@@ -9,7 +9,7 @@ Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.0.0] — 2026-04-17
 
 **Zenodo-archived release.** This version corresponds to the DOI:
-`10.5281/zenodo.XXXXXXX` *(placeholder — update after minting Thu 16 Apr)*.
+`10.5281/zenodo.19553631`.
 
 This is the code snapshot accompanying the major revision submission of
 "Covariance-Guided DFT Beam Selection for Beamspace ESPRIT in Hybrid mmWave
