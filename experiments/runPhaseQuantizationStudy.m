@@ -168,7 +168,6 @@ for iB = 1:nB
 end
 plot(ax, asnrList, sqrtCRB, 'k--','LineWidth',1.0,'DisplayName','\surdCRB');
 xlabel(ax,'ASNR [dB]'); ylabel(ax,'RMSE [rad]');
-title(ax,'Phase-quantization degradation (R1.1)');
 lgd = legend(ax, 'Orientation','horizontal','NumColumns',4);
 lgd.Layout.Tile = 'south';            % pushes legend below axes
 hold(ax,'off');
